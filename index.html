@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      body {
+        margin: 0;
+      }
+    </style>
+    <style>
+      #sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 180px;
+        height: 100vh;
+        background: #222;
+        color: #fff;
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+        z-index: 10;
+      }
+      #sidebar ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      #sidebar li {
+        padding: 16px 24px;
+        cursor: pointer;
+        border-bottom: 1px solid #333;
+        transition: background 0.2s;
+      }
+      #sidebar li:hover,
+      #sidebar li.active {
+        background: #444;
+        color: #ffd700;
+      }
+      #canvas {
+        display: block;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="sidebar">
+      <ul>
+        <li data-src="script.js">主入口</li>
+        <li data-src="gui.js">GUI 控制</li>
+        <li data-src="textures.js">纹理</li>
+        <li data-src="3dText.js">3D文字</li>
+        <li data-src="light.js">灯光</li>
+        <li data-src="shadows.js">阴影</li>
+        <li data-src="hauntedHouse.js">灯光屋示例</li>
+        <li data-src="partticles.js">常规粒子</li>
+        <li data-src="galaxyGenerator.js">粒子宇宙</li>
+        <li data-src="physics.js">物理效果</li>
+        <li data-src="importModels.js">模型导入</li>
+        <li data-src="raycaster.js">射线</li>
+        <li data-src="environmentMap.js" >环境贴图</li>
+        <li data-src="realisticRender.js">真实渲染</li>
+        <li data-src="codeProject.js">项目级结构案例</li>
+        <li data-src="shader.js" class="active">着色器</li>
+      </ul>
+    </div>
+    <canvas id="canvas"> </canvas>
+    <script>
+      const sidebar = document.getElementById("sidebar");
+      const items = sidebar.querySelectorAll("li");
+      let currentModule = "";
+      let moduleInstance;
+      function clearCanvas() {
+        // 删除旧的 canvas
+        const oldCanvas = document.getElementById("canvas");
+        if (oldCanvas) {
+          oldCanvas.parentNode.removeChild(oldCanvas);
+        }
+        document.querySelectorAll(".lil-gui").forEach((el) => el.remove());
+        // 新建 canvas 并插入到 body
+        const newCanvas = document.createElement("canvas");
+        newCanvas.id = "canvas";
+        document.body.appendChild(newCanvas);
+      }
+
+      async function loadModule(src) {
+        clearCanvas();
+        if (src) {
+          try {
+            const random = Math.random();
+            moduleInstance = await import(`./${src}?v=${random}`);
+            console.log(moduleInstance);
+          } catch (e) {
+            alert("加载失败: " + src);
+          }
+        }
+      }
+      items.forEach((item) => {
+        item.addEventListener("click", async () => {
+          items.forEach((i) => i.classList.remove("active"));
+          item.classList.add("active");
+          const src = item.getAttribute("data-src");
+          if (src !== currentModule) {
+            currentModule = src;
+            await loadModule(src);
+          }
+        });
+      });
+      loadModule("shader.js");
+    </script>
+  </body>
+</html>
