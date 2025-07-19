@@ -2,8 +2,8 @@
  * @Author: juzhiqiang
  * @Date: 2025-06-30 21:47:43
  * @LastEditors: juzhiqiang
- * @LastEditTime: 2025-07-17 23:47:42
- * @Description: 着色器
+ * @LastEditTime: 2025-07-18 00:34:32
+ * @Description: 着色器绘制图案
  *
  */
 import * as THREE from "three";
@@ -13,8 +13,8 @@ import * as dat from "lil-gui";
 import { TextGeometry, Timer } from "three/examples/jsm/Addons.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
-import testVertexShader from "./shaders/test/vertex.glsl";
-import testFragmentShader from "./shaders/test/fragment.glsl";
+import testVertexShader from "./shaders/patterns/vertex.glsl";
+import testFragmentShader from "./shaders/patterns/fragment.glsl";
 
 /**
  *  debug
@@ -60,7 +60,7 @@ const scene = new Scene();
 /**
  * Object
  */
-const geometry = new THREE.PlaneGeometry(3, 2, 32, 32);
+const geometry = new THREE.PlaneGeometry(1, 1, 32, 32);
 
 const count = geometry.attributes.position.count;
 const random = new Float32Array(count);
@@ -72,33 +72,13 @@ for (let i = 0; i < count; i++) {
 // 添加随机属性到顶点位置数据中
 geometry.setAttribute("aRandom", new THREE.BufferAttribute(random, 1));
 
-/**
- * 如果使用ShaderMaterial，下列属性不需要写入shader中，自带了。
- * projectMatrix 用于将顶点坐标从模型空间转换到裁剪空间的矩阵。
- * viewMatrix 用于将顶点坐标从世界空间转换到视图空间的矩阵。
- * modelMatrix 用于将顶点坐标从局部空间转换到世界空间的矩阵。
- * position 用于存储顶点在模型空间中的位置。
- * uv 用于存储顶点在纹理空间中的坐标。
- * precision 对于顶点着色器来说，precision highp float; 是一个常见的设置，它指定了浮点数的精度为高精度。
- *  */
-const material = new THREE.RawShaderMaterial({
+const material = new THREE.ShaderMaterial({
   vertexShader: testVertexShader,
   fragmentShader: testFragmentShader,
   side: THREE.DoubleSide,
-  transparent: true,
-  // 测试3使用
-  uniforms: {
-    uFrequency: { value: new THREE.Vector2(5, 2) },
-    uTime: { value: 0 },
-    uColor: { value: new THREE.Color("pink") },
-    uTexture: { value: image },
-  },
 });
 const mesh = new THREE.Mesh(geometry, material);
 scene.add(mesh);
-
-gui.add(material.uniforms.uFrequency.value, "x").min(0).max(50).step(0.1);
-gui.add(material.uniforms.uFrequency.value, "y").min(0).max(50).step(0.1);
 
 // light
 const ambientLight = new THREE.AmbientLight(0xffffff, 1);
@@ -157,9 +137,6 @@ const tick = () => {
   time.update();
   const deltaTime = time.getDelta();
   const elapsedTIme = time.getElapsed();
-
-  // 测试3使用
-  material.uniforms.uTime.value = elapsedTIme;
 
   renderer.render(scene, camera);
   window.requestAnimationFrame(tick);

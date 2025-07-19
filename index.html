@@ -25,6 +25,8 @@
         list-style: none;
         padding: 0;
         margin: 0;
+        overflow-y: auto;
+        height: 100%;
       }
       #sidebar li {
         padding: 16px 24px;
@@ -58,10 +60,11 @@
         <li data-src="physics.js">物理效果</li>
         <li data-src="importModels.js">模型导入</li>
         <li data-src="raycaster.js">射线</li>
-        <li data-src="environmentMap.js" >环境贴图</li>
+        <li data-src="environmentMap.js">环境贴图</li>
         <li data-src="realisticRender.js">真实渲染</li>
         <li data-src="codeProject.js">项目级结构案例</li>
-        <li data-src="shader.js" class="active">着色器</li>
+        <li data-src="shader.js">着色器</li>
+        <li data-src="shaderPatterns.js" class="active">着色器绘制图案</li>
       </ul>
     </div>
     <canvas id="canvas"> </canvas>
@@ -106,7 +109,7 @@
           }
         });
       });
-      loadModule("shader.js");
+      loadModule("shaderPatterns.js");
     </script>
   </body>
 </html>
