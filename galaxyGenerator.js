@@ -140,12 +140,6 @@ gui
 gui.addColor(parameters, "insideColor").onFinishChange(generateGalaxy);
 gui.addColor(parameters, "outsideColor").onFinishChange(generateGalaxy);
 
-// const box = new THREE.Mesh(
-//     new THREE.BoxGeometry(1, 1),
-//     new THREE.MeshBasicMaterial()
-// )
-// scene.add(box)
-
 // light
 const ambientLight = new THREE.AmbientLight("#223344", 0.08);
 scene.add(ambientLight);
