@@ -2,8 +2,8 @@
  * @Author: juzhiqiang
  * @Date: 2025-06-30 21:47:43
  * @LastEditors: juzhiqiang
- * @LastEditTime: 2025-07-31 22:39:28
- * @Description: 着色器粒子效果
+ * @LastEditTime: 2025-07-31 22:57:33
+ * @Description: 着色器粒子修改现有材质
  *
  */
 import * as THREE from "three";
@@ -47,6 +47,9 @@ const cubeTextureLoader = new THREE.CubeTextureLoader();
 const rgbeLoader = new RGBELoader();
 const gltfLoader = new GLTFLoader();
 
+// scene
+const scene = new Scene();
+
 const environmentMapTexture = cubeTextureLoader.load([
   "/images/environmentMaps/3/px.jpg",
   "/images/environmentMaps/3/nx.jpg",
@@ -59,13 +62,8 @@ const mapTexture = textureLoader.load("/models/LeePerrySmith/color.jpg");
 mapTexture.encoding = THREE.sRGBEncoding;
 const normalTexture = textureLoader.load("/models/LeePerrySmith/normal.jpg");
 
-// scene
-const scene = new Scene();
-const enviromentMap = environmentMapTexture;
-enviromentMap.encoding = THREE.sRGBEncoding;
-
-scene.environment = enviromentMap;
-scene.background = enviromentMap;
+scene.environment = environmentMapTexture;
+scene.background = environmentMapTexture;
 
 /**
  * Object
@@ -167,13 +165,27 @@ gltfLoader.load("/models/LeePerrySmith/LeePerrySmith.glb", (gltf) => {
   scene.add(model);
 });
 
+const plane = new THREE.Mesh(
+  new THREE.PlaneGeometry(15, 15, 15),
+  new THREE.MeshStandardMaterial()
+);
+plane.receiveShadow = true;
+plane.rotation.y = Math.PI;
+plane.position.y = -5;
+plane.position.z = 5;
+scene.add(plane);
+
 // light
 // const ambientLight = new THREE.AmbientLight(0xffffff, 1);
 // scene.add(ambientLight);
 
-const directionLight = new THREE.DirectionalLight(0xffffff, 1);
+const directionLight = new THREE.DirectionalLight('#ffffff', 0.5);
 directionLight.position.set(1, 3, 0);
 directionLight.castShadow = true;
+directionLight.shadow.mapSize.set(1024, 1024);
+directionLight.shadow.camera.far = 15;
+directionLight.shadow.normalBias = 0.05;
+directionLight.position.set(0.25, 2, -2.25);
 scene.add(directionLight);
 
 // camera
@@ -183,8 +195,7 @@ const camera = new THREE.PerspectiveCamera(
   0.001,
   100000
 );
-camera.position.z = 10;
-camera.position.y = 3;
+camera.position.set(4, 1, -4);
 scene.add(camera);
 
 //  axes
