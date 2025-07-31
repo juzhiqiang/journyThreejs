@@ -2,7 +2,7 @@
  * @Author: juzhiqiang
  * @Date: 2025-06-30 21:47:43
  * @LastEditors: juzhiqiang
- * @LastEditTime: 2025-07-30 00:40:03
+ * @LastEditTime: 2025-07-31 20:09:28
  * @Description: 着色器粒子效果
  *
  */
@@ -26,13 +26,13 @@ const parameters = {
   branches: 3,
   //   旋转值
   spin: 1,
-  randomness: 0.1,
+  randomness: 0.5,
   //   指数
   randomnessPower: 3,
   insideColor: "#ff6030",
   outsideColor: "#1b3984",
 };
-parameters.count = 100000;
+parameters.count = 200000;
 
 // size
 const size = {
@@ -84,7 +84,8 @@ const generateGalaxy = () => {
   geometry = new THREE.BufferGeometry();
   const positions = new Float32Array(parameters.count * 3);
   const colors = new Float32Array(parameters.count * 3);
-  const scales = new Float32Array(parameters.count);
+  const scales = new Float32Array(parameters.count * 1);
+  const randoms = new Float32Array(parameters.count * 3);
 
   const colorInside = new THREE.Color(parameters.insideColor);
   const colorOutside = new THREE.Color(parameters.outsideColor);
@@ -120,16 +121,21 @@ const generateGalaxy = () => {
     colors[i3 + 1] = mixColor.g;
     colors[i3 + 2] = mixColor.b;
 
-    positions[i3] = Math.cos(branchAngle) * radius + randomX;
-    positions[i3 + 1] = randomY;
-    positions[i3 + 2] = Math.sin(branchAngle) * radius + randomZ;
+    positions[i3] = Math.cos(branchAngle) * radius;
+    positions[i3 + 1] = 0.0;
+    positions[i3 + 2] = Math.sin(branchAngle) * radius;
 
-    scales[i3] = Math.random();
+    randoms[i3] = randomX;
+    randoms[i3 + 1] = randomY;
+    randoms[i3 + 2] = randomZ;
+
+    scales[i] = Math.random();
   }
 
   geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
   geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-  geometry.setAttribute("aScale", new THREE.BufferAttribute(scales, 3));
+  geometry.setAttribute("aScale", new THREE.BufferAttribute(scales, 1));
+  geometry.setAttribute("aRandoms", new THREE.BufferAttribute(randoms, 3));
 
   material = new THREE.ShaderMaterial({
     depthWrite: false,
@@ -139,8 +145,9 @@ const generateGalaxy = () => {
     fragmentShader: testFragmentShader,
     uniforms: {
       uSize: {
-        value: parameters.size * renderer.getPixelRatio(),
+        value: 30 * renderer.getPixelRatio(),
       },
+      uTime: { value: 0 },
     },
   });
   material.needsUpdate = true;
@@ -217,6 +224,8 @@ const tick = () => {
   time.update();
   const deltaTime = time.getDelta();
   const elapsedTIme = time.getElapsed();
+
+  material.uniforms.uTime.value = elapsedTIme;
 
   renderer.render(scene, camera);
   window.requestAnimationFrame(tick);
