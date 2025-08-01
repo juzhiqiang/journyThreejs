@@ -13,8 +13,6 @@ import * as dat from "lil-gui";
 import { TextGeometry, Timer } from "three/examples/jsm/Addons.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
-import testVertexShader from "../shaders/animateGalaxy/vertex.glsl";
-import testFragmentShader from "../shaders/animateGalaxy/fragment.glsl";
 
 /**
  *  debug

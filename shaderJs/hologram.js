@@ -2,8 +2,8 @@
  * @Author: juzhiqiang
  * @Date: 2025-06-30 21:47:43
  * @LastEditors: juzhiqiang
- * @LastEditTime: 2025-08-01 15:24:43
- * @Description: 咖啡杯烟雾着色器效果
+ * @LastEditTime: 2025-08-01 15:41:25
+ * @Description: 全息效果
  *
  */
 import * as THREE from "three";
@@ -13,8 +13,8 @@ import * as dat from "lil-gui";
 import { TextGeometry, Timer } from "three/examples/jsm/Addons.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
-import vertexShader from "../shaders/coffeeSmoke/vertex.glsl";
-import fragmentShader from "../shaders/coffeeSmoke/fragment.glsl";
+import vertexShader from "../shaders/hologram/vertex.glsl";
+import fragmentShader from "../shaders/hologram/fragment.glsl";
 /**
  *  debug
  * */
@@ -52,45 +52,30 @@ const scene = new Scene();
 /**
  * Object
  */
-gltfLoader.load("/models/coffe/bakedModel.glb", (gltf) => {
+gltfLoader.load("/models/hologram/suzanne.glb", (gltf) => {
   scene.add(gltf.scene);
 });
 
-/* 
-利用平面扭曲制作烟雾效果
-*/
-const smokeGeometry = new THREE.PlaneGeometry(1, 1, 16, 64);
-smokeGeometry.translate(0, 0.5, 0);
-smokeGeometry.scale(1.5, 6, 1.5);
+const material = new THREE.MeshBasicMaterial({})
 
-const perlinTexture = textureLoader.load("/models/coffe/perlin.png");
-perlinTexture.wrapS = THREE.RepeatWrapping;
-perlinTexture.wrapT = THREE.RepeatWrapping;
+// Torus knot
+const torusKnot = new THREE.Mesh(new THREE.TorusKnotGeometry(0.6, 0.25, 128, 32), material)
+torusKnot.position.x = 3
+scene.add(torusKnot)
 
-const smokeMaterial = new THREE.ShaderMaterial({
-  vertexShader: vertexShader,
-  fragmentShader: fragmentShader,
-  side: THREE.DoubleSide,
-  transparent: true,
-  depthWrite: false,
-  uniforms: {
-    uPerlinTexture: new THREE.Uniform(perlinTexture),
-    uTime: new THREE.Uniform(0),
-  },
-});
-
-const smokeMesh = new THREE.Mesh(smokeGeometry, smokeMaterial);
-smokeMesh.position.set(0, 1.5, 0);
-scene.add(smokeMesh);
+// Sphere
+const sphere = new THREE.Mesh(new THREE.SphereGeometry(), material)
+sphere.position.x = -3
+scene.add(sphere)
 
 // light
 const ambientLight = new THREE.AmbientLight(0xffffff, 1);
 scene.add(ambientLight);
 
-// const directionLight = new THREE.DirectionalLight(0xffffff, 1);
-// directionLight.position.set(1, 3, 0);
-// directionLight.castShadow = true;
-// scene.add(directionLight);
+const directionLight = new THREE.DirectionalLight(0xffffff, 1);
+directionLight.position.set(1, 3, 0);
+directionLight.castShadow = true;
+scene.add(directionLight);
 
 // camera
 const camera = new THREE.PerspectiveCamera(
@@ -140,8 +125,6 @@ const tick = () => {
   time.update();
   const deltaTime = time.getDelta();
   const elapsedTIme = time.getElapsed();
-
-  smokeMaterial.uniforms.uTime.value = elapsedTIme;
 
   renderer.render(scene, camera);
   window.requestAnimationFrame(tick);
