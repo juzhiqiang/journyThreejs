@@ -2,8 +2,8 @@
  * @Author: juzhiqiang
  * @Date: 2025-06-30 21:47:43
  * @LastEditors: juzhiqiang
- * @LastEditTime: 2025-08-01 15:41:25
- * @Description: 全息效果
+ * @LastEditTime: 2025-08-02 23:01:55
+ * @Description: 全息效果(菲涅尔效果)
  *
  */
 import * as THREE from "three";
@@ -19,7 +19,10 @@ import fragmentShader from "../shaders/hologram/fragment.glsl";
  *  debug
  * */
 const gui = new dat.GUI();
-const parameters = {};
+const parameters = {
+  backgroundColor: "#1d1f2a",
+  color: '#70c1ff'
+};
 
 // size
 const size = {
@@ -52,28 +55,49 @@ const scene = new Scene();
 /**
  * Object
  */
-gltfLoader.load("/models/hologram/suzanne.glb", (gltf) => {
-  scene.add(gltf.scene);
+const material = new THREE.ShaderMaterial({
+  vertexShader: vertexShader,
+  fragmentShader: fragmentShader,
+  transparent: true,
+  side: THREE.DoubleSide,
+  depthWrite: false,
+  blending: THREE.AdditiveBlending,
+  uniforms: {
+    uTime: new THREE.Uniform(0),
+    uColor: new THREE.Uniform(new THREE.Color(parameters.color)),
+  },
 });
 
-const material = new THREE.MeshBasicMaterial({})
+gui.addColor(parameters, "color").onChange((e) => {
+  material.uniforms.uColor.value = new THREE.Color(e);
+});
+
+let suzanne;
+gltfLoader.load("/models/hologram/suzanne.glb", (gltf) => {
+  suzanne = gltf.scene;
+  scene.add(suzanne);
+  suzanne.children[0].material = material;
+});
 
 // Torus knot
-const torusKnot = new THREE.Mesh(new THREE.TorusKnotGeometry(0.6, 0.25, 128, 32), material)
-torusKnot.position.x = 3
-scene.add(torusKnot)
+const torusKnot = new THREE.Mesh(
+  new THREE.TorusKnotGeometry(0.6, 0.25, 128, 32),
+  material
+);
+torusKnot.position.x = 3;
+scene.add(torusKnot);
 
 // Sphere
-const sphere = new THREE.Mesh(new THREE.SphereGeometry(), material)
-sphere.position.x = -3
-scene.add(sphere)
+const sphere = new THREE.Mesh(new THREE.SphereGeometry(), material);
+sphere.position.x = -3;
+scene.add(sphere);
 
 // light
 const ambientLight = new THREE.AmbientLight(0xffffff, 1);
 scene.add(ambientLight);
 
 const directionLight = new THREE.DirectionalLight(0xffffff, 1);
-directionLight.position.set(1, 3, 0);
+directionLight.position.set(1, 5, 0);
 directionLight.castShadow = true;
 scene.add(directionLight);
 
@@ -112,6 +136,11 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 // 映射曝光
 renderer.toneMappingExposure = 1.5;
+renderer.setClearColor(parameters.backgroundColor);
+
+gui.addColor(parameters, "backgroundColor").onChange((color) => {
+  renderer.setClearColor(color);
+});
 
 const controls = new OrbitControls(camera, renderer.domElement);
 
@@ -125,6 +154,19 @@ const tick = () => {
   time.update();
   const deltaTime = time.getDelta();
   const elapsedTIme = time.getElapsed();
+
+  material.uniforms.uTime.value = elapsedTIme;
+
+  if (suzanne) {
+    suzanne.rotation.x = -elapsedTIme * 0.1;
+    suzanne.rotation.y = elapsedTIme * 0.2;
+  }
+
+  sphere.rotation.x = -elapsedTIme * 0.1;
+  sphere.rotation.y = elapsedTIme * 0.2;
+
+  torusKnot.rotation.x = -elapsedTIme * 0.1;
+  torusKnot.rotation.y = elapsedTIme * 0.2;
 
   renderer.render(scene, camera);
   window.requestAnimationFrame(tick);
