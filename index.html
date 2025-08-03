@@ -70,7 +70,8 @@
         <li data-src="shaderJs/modifiedMaterial.js">着色器修改材质</li>
         <li data-src="shaderJs/coffeeSmoke.js">咖啡杯烟雾效果</li>
         <li data-src="shaderJs/hologram.js">全息效果</li>
-        <li data-src="shaderJs/fireworks.js" class="active">烟花效果</li>
+        <li data-src="shaderJs/fireworks.js" >烟花效果</li>
+        <li data-src="shaderJs/lights.js" class="active">光照阴影</li>
       </ul>
     </div>
     <canvas id="canvas"> </canvas>
@@ -115,7 +116,7 @@
           }
         });
       });
-      loadModule("shaderJs/fireworks.js");
+      loadModule("shaderJs/lights.js");
     </script>
   </body>
 </html>
