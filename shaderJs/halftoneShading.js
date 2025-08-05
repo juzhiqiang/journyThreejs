@@ -2,7 +2,7 @@
  * @Author: juzhiqiang
  * @Date: 2025-06-30 21:47:43
  * @LastEditors: juzhiqiang
- * @LastEditTime: 2025-08-05 19:06:24
+ * @LastEditTime: 2025-08-05 21:27:43
  * @Description: 半色调着色
  *
  */
@@ -35,6 +35,7 @@ const debug = {
 const size = {
   width: window.innerWidth,
   height: window.innerHeight,
+  pixelRatio: Math.min(window.devicePixelRatio, 2),
 };
 
 // 鼠标光标位置追踪（预留功能，当前未使用）
@@ -60,72 +61,86 @@ const gltfLoader = new GLTFLoader();
 
 // 创建场景
 const scene = new Scene();
-
+gui.addColor(debug, 'clearColor').onChange(() => renderer.setClearColor(debug.clearColor))
 /**
  * 水面几何体和材质设置
  */
+console.log(size)
 // 创建自定义着色器材质
 const material = new THREE.ShaderMaterial({
   vertexShader: testVertexShader, // 顶点着色器
   fragmentShader: testFragmentShader, // 片段着色器
-  side: THREE.DoubleSide, // 双面渲染
-  wireframe: false, // 非线框模式
   uniforms: {
-    // 时间相关
-    uTime: { value: 0.0 }, // 动画时间
-
-    // 大波浪参数
-    uBigWavesSpeed: { value: 0.2 }, // 大波浪移动速度
-    uBigWavesElevation: { value: 0.2 }, // 大波浪高度幅度
-    uBigWavesFrequency: { value: new THREE.Vector2(4, 1.5) }, // 大波浪频率(X,Z轴)
-
-    // 颜色混合参数
-    uDepthColor: { value: new THREE.Color(debug.color) }, // 深水颜色
-    uSurfaceColor: { value: new THREE.Color(debug.color) }, // 浅水颜色
-    uColorOffset: { value: 0.925 }, // 颜色混合偏移
-    uColorMultiplier: { value: 1.0 }, // 颜色混合倍数
-
-    // 小波浪（细节）参数
-    uSmallWavesElevation: { value: 0.15 }, // 小波浪高度
-    uSmallWavesFrequency: { value: 3.0 }, // 小波浪频率
-    uSmallWavesSpeed: { value: 0.2 }, // 小波浪速度
-    uSmallWavesIterations: { value: 4.0 }, // 小波浪迭代层数
+    uColor: new THREE.Uniform(new THREE.Color(debug.color)),
+    uShadowColor: new THREE.Uniform(new THREE.Color(debug.shadowColor)),
+    uResolution: new THREE.Uniform(new THREE.Vector2(size.width * size.pixelRatio, size.height * size.pixelRatio)), //prettier-ignore
+    uShadowRepetitions: new THREE.Uniform(debug.shadowRepetitions),
+    uLightRepetitions: new THREE.Uniform(debug.lightRepetitions),
+    uLightColor: new THREE.Uniform(new THREE.Color(debug.lightColor)),
   },
 });
 
+gui
+  .addColor(debug, "color")
+  .onChange(() => material.uniforms.uColor.value.set(debug.color));
+gui
+  .add(debug, "shadowRepetitions")
+  .min(1)
+  .max(300)
+  .step(1)
+  .onChange(
+    () => (material.uniforms.uShadowRepetitions.value = debug.shadowRepetitions)
+  );
+gui
+  .addColor(debug, "shadowColor")
+  .onChange(() => material.uniforms.uShadowColor.value.set(debug.shadowColor));
+gui
+  .add(debug, "lightRepetitions")
+  .min(1)
+  .max(300)
+  .step(1)
+  .onChange(
+    () => (material.uniforms.uLightRepetitions.value = debug.lightRepetitions)
+  );
+gui
+  .addColor(debug, "lightColor")
+  .onChange(() => material.uniforms.uLightColor.value.set(debug.lightColor));
 
 // Torus knot
-const torusKnot = new THREE.Mesh(new THREE.TorusKnotGeometry(0.6, 0.25, 128, 32), material)
-torusKnot.position.x = 3
-scene.add(torusKnot)
+const torusKnot = new THREE.Mesh(
+  new THREE.TorusKnotGeometry(0.6, 0.25, 128, 32),
+  material
+);
+torusKnot.position.x = 3;
+scene.add(torusKnot);
 
 // Sphere
-const sphere = new THREE.Mesh(new THREE.SphereGeometry(), material)
-sphere.position.x = -3
-scene.add(sphere)
+const sphere = new THREE.Mesh(new THREE.SphereGeometry(), material);
+sphere.position.x = -3;
+scene.add(sphere);
 
 // Suzanne
-let suzanne = null
-gltfLoader.load('/models/hologram/suzanne.glb', gltf => {
-  suzanne = gltf.scene
-  suzanne.traverse(child => {
-    if (child.isMesh) child.material = material
-  })
-  scene.add(suzanne)
-})
+let suzanne = null;
+gltfLoader.load("/models/hologram/suzanne.glb", (gltf) => {
+  suzanne = gltf.scene;
+  suzanne.traverse((child) => {
+    if (child.isMesh) child.material = material;
+  });
+  scene.add(suzanne);
+});
 
 /**
  * 场景光照设置
  */
-// 环境光提供整体照明
-const ambientLight = new THREE.AmbientLight(0xffffff, 1);
-scene.add(ambientLight);
+// // 环境光提供整体照明
+// const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+// scene.add(ambientLight);
 
-// 方向光模拟太阳光，支持阴影
-const directionLight = new THREE.DirectionalLight(0xffffff, 1);
-directionLight.position.set(1, 3, 0);
-directionLight.castShadow = true;
-scene.add(directionLight);
+// // 方向光模拟太阳光，支持阴影
+// const directionLight = new THREE.DirectionalLight(0xffffff, 1);
+// directionLight.position.set(1, 3, 0);
+// directionLight.castShadow = true;
+// scene.add(directionLight);
 
 /**
  * 摄像机设置
@@ -154,7 +169,7 @@ const renderer = new THREE.WebGLRenderer({
 renderer.setSize(size.width, size.height);
 renderer.shadowMap.enabled = true; // 启用阴影
 renderer.shadowMap.type = THREE.PCFSoftShadowMap; // 软阴影类型
-
+renderer.setClearColor(debug.clearColor)
 // 限制像素比以平衡性能和质量
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
@@ -165,7 +180,7 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 // 设置色调映射为ACES Filmic，提供电影级色彩效果
 // ACES（Academy Color Encoding System）是电影行业标准色彩系统
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.5; // 可选：调整曝光度
+// renderer.toneMappingExposure = 1.5; // 可选：调整曝光度
 
 // 添加轨道控制器，允许用户交互控制摄像机
 const controls = new OrbitControls(camera, renderer.domElement);
