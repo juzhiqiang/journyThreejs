@@ -11,4 +11,9 @@ void main(){
   vec3 mixColor  = mix(uDepthColor, uSurfaceColor, mixStrength);
 
   gl_FragColor = vec4(mixColor, 1.0);
+
+    // clang-format off
+  #include <tonemapping_fragment>
+  #include <colorspace_fragment>
+  // clang-format on
 }

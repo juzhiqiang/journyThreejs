@@ -71,7 +71,9 @@
         <li data-src="shaderJs/coffeeSmoke.js">咖啡杯烟雾效果</li>
         <li data-src="shaderJs/hologram.js">全息效果</li>
         <li data-src="shaderJs/fireworks.js" >烟花效果</li>
-        <li data-src="shaderJs/lights.js" class="active">光照阴影</li>
+        <li data-src="shaderJs/lights.js">光照阴影</li>
+        <li data-src="shaderJs/ragingSeaLight.js">光照反射大海</li>
+        <li data-src="shaderJs/halftoneShading.js" class="active">半色调着色</li>
       </ul>
     </div>
     <canvas id="canvas"> </canvas>
@@ -116,7 +118,7 @@
           }
         });
       });
-      loadModule("shaderJs/lights.js");
+      loadModule("shaderJs/halftoneShading.js");
     </script>
   </body>
 </html>
