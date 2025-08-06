@@ -1,64 +1,57 @@
-uniform vec3 uColor;
-uniform vec2 uResolution;
-uniform float uShadowRepetitions;
-uniform vec3 uShadowColor;
-uniform float uLightRepetitions;
-uniform vec3 uLightColor;
-
+varying vec2 vUv;
 varying vec3 vNormal;
 varying vec3 vPosition;
-
-#include ../includes/ambientLight.glsl
-#include ../includes/directionalLight.glsl
-#include ../includes/halftone.glsl
+uniform sampler2D uDayTexture;
+uniform sampler2D uNightTexture;
+uniform sampler2D uSpecularTexture;
+uniform vec3 uSunDirection;
+uniform vec3 uAtmosphereDayColor;
+uniform vec3 uAtmosphereTwilightColor;
 
 void main() {
-  vec3 viewDirection = normalize(vPosition - cameraPosition);
-  vec3 normal = normalize(vNormal);
-  vec3 color = uColor;
 
-  // Light
-  vec3 light = vec3(0.0);
+vec3 viewDirection  = normalize(vPosition - cameraPosition);
+vec3 normal = normalize(vNormal);
+vec3 color = vec3(0.0);
 
-  light += ambientLight( //
-      vec3(1.0),         // color
-      1.0                // intensity
-  );
+// 太阳广
+float sunOrientation = dot(uSunDirection, normal);
 
-  light += directionalLight( //
-      vec3(1.0),             // color
-      1.0,  
-      normal,          
-      vec3(1.0, 1.0, 0.0), 
-      viewDirection ,      
-      1.0           
-  );
+float dayMix = smoothstep(-0.25, 0.5, sunOrientation);
+vec3 dayColor = texture(uDayTexture,vUv).rgb;
+vec3 nightColor = texture(uNightTexture,vUv).rgb;
+color = mix(nightColor,dayColor, dayMix);
 
-  color *= light;
+// 云效果
+vec2 specularTexture = texture(uSpecularTexture,vUv).rg; 
+float cloudsMix = smoothstep(0.5, 1.0, specularTexture.g);
+cloudsMix *= dayMix;
+color = mix(color, vec3(1.0), cloudsMix);
 
-  // Halftone
-  color = halftone(         //
-      color,                //
-      uShadowColor,         // pointColor
-      uShadowRepetitions,   // repetitions
-      vec3(0.0, -1.0, 0.0), // direction
-      normal,               //
-      -0.8,                 // intensity low
-      1.5                   // intensity high
-  );
+float fresnel = 1.0 + dot(viewDirection, normal);
+fresnel = pow(fresnel, 2.0);
 
-  color = halftone(        //
-      color,               //
-      uLightColor,         // pointColor
-      uLightRepetitions,   // repetitions
-      vec3(1.0, 1.0, 0.0), // direction
-      normal,              //
-      0.5,                 // intensity low
-      1.5                  // intensity high
-  );
+// 大气效果
+float atmosphereMix = smoothstep(-0.5, 1.0, sunOrientation);
+vec3 atmosphereColor = mix(uAtmosphereTwilightColor,uAtmosphereDayColor,atmosphereMix);
+color = mix(color,atmosphereColor,fresnel * atmosphereMix);
 
-  // Final color
-  gl_FragColor = vec4(color, 1.0);
+
+vec3 reflection = reflect(-uSunDirection, normal);
+float specular = -dot(reflection, viewDirection);
+specular = max(specular, 0.0);
+specular = pow(specular, 32.0);
+
+specular *= specularTexture.r;
+
+
+vec3 specularColor = mix(vec3(1.0),atmosphereColor, fresnel);
+color += specular * specularColor;
+
+
+
+
+gl_FragColor = vec4(color, 1.0);
 
   // clang-format off
   #include <tonemapping_fragment>
