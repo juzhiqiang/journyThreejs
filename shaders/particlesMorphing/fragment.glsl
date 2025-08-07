@@ -1,17 +1,11 @@
-varying vec3 vColor;
 
 void main(){
 
   vec2 uv = gl_PointCoord;
-  float distanceToCenter = length(uv - vec2(0.5));
+  float distanceToCenter = length(uv - 0.5);
+  float alpha = 0.05 / distanceToCenter - 0.1;
 
-
-  if(distanceToCenter > 0.5){
-    discard;
-  }
-
-
-  gl_FragColor = vec4(vColor, 1.0);
+  gl_FragColor = vec4(vec3(1.0), alpha);
 
   // 引入色调映射功能，将高动态范围(HDR)颜色适配到显示器的有限动态范围
   #include <tonemapping_fragment>
