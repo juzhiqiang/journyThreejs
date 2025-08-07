@@ -74,7 +74,10 @@
         <li data-src="shaderJs/lights.js">光照阴影</li>
         <li data-src="shaderJs/ragingSeaLight.js">光照反射大海</li>
         <li data-src="shaderJs/halftoneShading.js" >半色调着色</li>
-        <li data-src="shaderJs/earth.js" class="active">气球光晕</li>
+        <li data-src="shaderJs/earth.js" >地球光晕</li>
+        <li data-src="shaderJs/particlesCursorAnimation.js">鼠标粒子动画</li>
+        <li data-src="shaderJs/particlesMorphing.js" class="active">粒子形变动画</li>
+        
       </ul>
     </div>
     <canvas id="canvas"> </canvas>
@@ -119,7 +122,7 @@
           }
         });
       });
-      loadModule("shaderJs/earth.js");
+      loadModule("shaderJs/particlesMorphing.js");
     </script>
   </body>
 </html>
