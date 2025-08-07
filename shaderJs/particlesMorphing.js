@@ -2,7 +2,7 @@
  * @Author: juzhiqiang
  * @Date: 2025-06-30 21:47:43
  * @LastEditors: juzhiqiang
- * @LastEditTime: 2025-08-07 17:50:33
+ * @LastEditTime: 2025-08-07 18:21:35
  * @Description: 粒子形变动画
  *
  */
@@ -54,11 +54,10 @@ const textureLoader = new THREE.TextureLoader();
 const cubeTextureLoader = new THREE.CubeTextureLoader();
 const rgbeLoader = new RGBELoader();
 const dracoLoader = new DRACOLoader();
-dracoLoader.setDecoderPath('/draco/')
+dracoLoader.setDecoderPath("/draco/");
 const gltfLoader = new GLTFLoader();
-gltfLoader.setDRACOLoader(dracoLoader)
-console.log(gltfLoader)
-
+gltfLoader.setDRACOLoader(dracoLoader);
+console.log(gltfLoader);
 
 // 创建场景
 const scene = new Scene();
@@ -68,6 +67,42 @@ let particles = null;
 gltfLoader.load("/models/models.glb", (gltf) => {
   console.log(gltf);
   particles = {};
+
+  const positions = [];
+  gltf.scene.traverse((child) => {
+    if (child.isMesh) {
+      positions.push(child.geometry.attributes.position);
+    }
+  });
+
+  particles.maxCount = 0;
+  for (const position of positions) {
+    if (position.count > particles.maxCount) {
+      particles.maxCount = position.count;
+    }
+  }
+
+  particles.positions = [];
+  for (const position of positions) {
+    const originalArray = position.array;
+    const newArray = new Float32Array(position.maxCount * 3);
+
+    for (let i = 0; i < particles.maxCount; i++) {
+      const i3 = i * 3;
+      if (i3 < originalArray.length) {
+        newArray[i3] = originalArray[i3];
+        newArray[i3 + 1] = originalArray[i3 + 1];
+        newArray[i3 + 2] = originalArray[i3 + 2];
+      } else {
+        newArray[i3] = 0;
+        newArray[i3 + 1] = 0;
+        newArray[i3 + 2] = 0;
+      }
+    }
+
+    particles.positions.push(newArray);
+
+  }
 
   particles.geometry = new THREE.SphereGeometry(3);
   particles.geometry.setIndex(null);
@@ -80,7 +115,7 @@ gltfLoader.load("/models/models.glb", (gltf) => {
     depthWrite: true,
     uniforms: {
       uSize: new THREE.Uniform(0.4),
-      uREsoluion: new THREE.Uniform(
+      uResolution: new THREE.Uniform(
         new THREE.Vector2(
           size.width * size.pixelRatio,
           size.height * size.pixelRatio
@@ -185,6 +220,7 @@ window.addEventListener("resize", () => {
   // 更新尺寸
   size.width = window.innerWidth;
   size.height = window.innerHeight;
+  size.pixelRatio = Math.min(window.devicePixelRatio, 2);
 
   if (particles) {
     particles.material.uniforms.uResolution.value.set(
